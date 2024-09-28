@@ -14,12 +14,13 @@ class Player:
         new_x = self.x + dx
         new_y = self.y + dy
         if 0 <= new_x < self.width and 0 <= new_y < self.height:
-            if world[new_y][new_x]['height'] <= 0.8: # stop at height 0.8
+            if world[new_x][new_y]['height'] <= 0.8: # stop at height 0.8
                 self.x = new_x
                 self.y = new_y
 
     def change_ground(self, world, x, y, value):
-        world[y][x] = value
+        world[x][y]['forest'] = value
 
     def read_world(self, world, x, y):
-        return world[y][x]
+        print(f"X: {x}, Y: {y}")
+        return world[x][y]
