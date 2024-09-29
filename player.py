@@ -21,6 +21,7 @@ class Player:
     def change_ground(self, world, x, y, value):
         world[x][y]['forest'] = value
 
-    def read_world(self, world, x, y):
+    def read_world(self, game, x, y):
         print(f"X: {x}, Y: {y}")
-        return world[x][y]
+        # print(game.world)
+        return game.world[x][y]

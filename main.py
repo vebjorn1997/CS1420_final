@@ -7,7 +7,7 @@ import player as pl
 import random
 
 # WIDTH, HEIGHT = 100, 100
-WIDTH, HEIGHT = 1000, 1000
+WIDTH, HEIGHT = 100, 100
 VIEW_WIDTH, VIEW_HEIGHT = 90, 50
 # VIEW_WIDTH, VIEW_HEIGHT = 50, 30
 
@@ -15,15 +15,17 @@ class Game:
     def __init__(self):
         self.noise_map_height = pn.perlin_noise(WIDTH, HEIGHT)
         self.noise_map_temperature = pn.perlin_noise(WIDTH, HEIGHT)
-        self.world = [[{'height': 0, 'temperature': 0, 'forest': False, 'water': False} for _ in range(WIDTH)] for _ in range(HEIGHT)]
+        self.noise_map_precipitation = pn.perlin_noise(WIDTH, HEIGHT)
+        self.world = [[{'height': 0, 'temperature': 0, 'precipitation': 0, 'forest': False, 'water': False} for _ in range(WIDTH)] for _ in range(HEIGHT)]
         for x in range(HEIGHT):
             for y in range(WIDTH):
                 self.world[x][y]['height'] = self.noise_map_height[x][y]
                 self.world[x][y]['temperature'] = self.noise_map_temperature[x][y]
-                # if not self.world[x][y]['forest']:
-                self.world[x][y]['forest'] = self.generate_forest(x, y)
-                # if not self.world[x][y]['water']:
-                self.world[x][y]['water'] = self.generate_water(x, y)
+                self.world[x][y]['precipitation'] = self.noise_map_precipitation[x][y]
+                if not self.world[x][y]['forest']:
+                    self.world[x][y]['forest'] = self.generate_forest(x, y)
+                if not self.world[x][y]['water']:
+                    self.world[x][y]['water'] = self.generate_water(x, y)
 
     def draw_world(self, console: tcod.console.Console, view_x: int, view_y: int):
         for x in range(VIEW_WIDTH):
@@ -50,25 +52,18 @@ class Game:
         for i in range(x-1, x+2):
             for j in range(y-1, y+2):
                 if 0 <= i < WIDTH and 0 <= j < HEIGHT:
-                    if random.random() < 0.1:
+                    if random.random() < 0.08:
                         self.world[i][j]['forest'] = True
                         self.gen_for(i, j)
 
     def generate_forest(self, x, y):
-        if self.world[x][y]['height'] > 0.3 and self.world[x][y]['height'] < 0.65 and self.world[x][y]['temperature'] > 0.3:
-            # if random.random() < 0.05:
-            # self.gen_for(x, y)
-            return True
+        if self.world[x][y]['height'] > 0.3 and self.world[x][y]['height'] < 0.65 and self.world[x][y]['temperature'] > 0.5:
+            if random.random() < 0.05:
+                self.gen_for(x, y)
+                return True
         return False
 
     def generate_water(self, x, y):
-        for dx in [-1, 0, 1]:
-            for dy in [-1, 0, 1]:
-                nx, ny = x + dx, y + dy
-                if 0 <= nx < WIDTH and 0 <= ny < HEIGHT:
-                    if self.world[nx][ny]['height'] < 0.3:
-                        return True
-
         return False
 
     def get_world(self):
@@ -119,7 +114,7 @@ def main() -> None:
                         player.change_ground(game.world, player.x, player.y, True)
                         game.gen_for(player.x, player.y)
                     elif event.sym == tcod.event.KeySym.q: # DEBUG
-                        print(player.read_world(game.world, player.x, player.y))
+                        print(player.read_world(game, player.x, player.y))
 
 if __name__ == "__main__":
     main()
