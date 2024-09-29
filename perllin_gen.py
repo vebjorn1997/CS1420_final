@@ -11,8 +11,8 @@ def visualize_noise_map(noise_map):
 
 def perlin_noise(width, height) -> np.ndarray:
     noise_map = np.zeros((height, width))
-    scale = 8.0       # Determines the zoom level of the noise
-    octaves = 4        # Number of layers of noise
+    scale = 2.0       # Determines the zoom level of the noise
+    octaves = 8        # Number of layers of noise
     persistence = 0.5  # Amplitude of each octave
     lacunarity = 2.0   # Frequency of each octave
     seed = random.randint(0, 100)           # Seed for randomness

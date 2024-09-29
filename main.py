@@ -16,7 +16,7 @@ class Game:
         self.noise_map_height = pn.perlin_noise(WIDTH, HEIGHT)
         self.noise_map_temperature = pn.perlin_noise(WIDTH, HEIGHT)
         self.noise_map_precipitation = pn.perlin_noise(WIDTH, HEIGHT)
-        self.world = [[{'height': 0, 'temperature': 0, 'precipitation': 0, 'forest': False, 'water': False} for _ in range(WIDTH)] for _ in range(HEIGHT)]
+        self.world = [[{'height': 0, 'temperature': 0, 'precipitation': 0, 'forest': False, 'water': False, 'river': False} for _ in range(WIDTH)] for _ in range(HEIGHT)]
         for x in range(HEIGHT):
             for y in range(WIDTH):
                 self.world[x][y]['height'] = self.noise_map_height[x][y]
@@ -24,8 +24,8 @@ class Game:
                 self.world[x][y]['precipitation'] = self.noise_map_precipitation[x][y]
                 if not self.world[x][y]['forest']:
                     self.world[x][y]['forest'] = self.generate_forest(x, y)
-                if not self.world[x][y]['water']:
-                    self.world[x][y]['water'] = self.generate_water(x, y)
+        for _ in range(int(WIDTH*HEIGHT//1000)):
+            self.generate_lake(random.randint(3, 8))
 
     def draw_world(self, console: tcod.console.Console, view_x: int, view_y: int):
         for x in range(VIEW_WIDTH):
@@ -36,15 +36,18 @@ class Game:
                     height = self.world[world_x][world_y]['height']
                     forest = self.world[world_x][world_y]['forest']
                     water = self.world[world_x][world_y]['water']
+                    river = self.world[world_x][world_y]['river']
 
                     if height > 0.8: # mountain
                         console.print(x, y, "#")
                     elif height > 0.65: # hill
                         console.print(x, y, "/")
-                    elif forest: # forest
-                        console.print(x, y, "T", fg=(0, 200, 0))
+                    elif river: # river
+                        console.print(x, y, "X", fg=(255, 0, 0))
                     elif water: # water
                         console.print(x, y, "~", fg=(0, 0, 255))
+                    elif forest: # forest
+                        console.print(x, y, "T", fg=(0, 200, 0))
                     else: # plains
                         console.print(x, y, ".", fg=(0, 255, 0))
 
@@ -63,8 +66,22 @@ class Game:
                 return True
         return False
 
-    def generate_water(self, x, y):
-        return False
+    def generate_lake(self, radius: int):
+        lake_position = (random.randint(0, WIDTH - 1), random.randint(0, HEIGHT - 1))
+        for x in range(lake_position[0] - radius, lake_position[0] + radius):
+            for y in range(lake_position[1] - radius, lake_position[1] + radius):
+                if 0 <= x < WIDTH and 0 <= y < HEIGHT:
+                    self.generate_lake_tiles(x, y)
+
+    def generate_lake_tiles(self, x, y):
+        self.world[x][y]['water'] = True
+        for i in range(x-1, x+2):
+            for j in range(y-1, y+2):
+                if 0 <= i < WIDTH and 0 <= j < HEIGHT:
+                    if random.random() < 0.1:
+                        self.world[i][j]['water'] = True
+                        self.world[i][j]['forest'] = False
+                        self.generate_lake_tiles(i, j)
 
     def get_world(self):
         return print(self.world)
@@ -115,6 +132,7 @@ def main() -> None:
                         game.gen_for(player.x, player.y)
                     elif event.sym == tcod.event.KeySym.q: # DEBUG
                         print(player.read_world(game, player.x, player.y))
+
 
 if __name__ == "__main__":
     main()
