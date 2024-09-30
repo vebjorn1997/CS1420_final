@@ -5,7 +5,7 @@ import tcod.tileset
 import perllin_gen as pn
 import player as pl
 import random
-
+import numpy as np
 # WIDTH, HEIGHT = 100, 100
 WIDTH, HEIGHT = 100, 100
 VIEW_WIDTH, VIEW_HEIGHT = 90, 50
@@ -16,7 +16,7 @@ class Game:
         self.noise_map_height = pn.perlin_noise(WIDTH, HEIGHT)
         self.noise_map_temperature = pn.perlin_noise(WIDTH, HEIGHT)
         self.noise_map_precipitation = pn.perlin_noise(WIDTH, HEIGHT)
-        self.world = [[{'height': 0, 'temperature': 0, 'precipitation': 0, 'forest': False, 'water': False, 'river': False} for _ in range(WIDTH)] for _ in range(HEIGHT)]
+        self.world = [[{'height': 0, 'temperature': 0, 'precipitation': 0, 'forest': False, 'water': False} for _ in range(WIDTH)] for _ in range(HEIGHT)]
         for x in range(HEIGHT):
             for y in range(WIDTH):
                 self.world[x][y]['height'] = self.noise_map_height[x][y]
@@ -26,6 +26,18 @@ class Game:
                     self.world[x][y]['forest'] = self.generate_forest(x, y)
         for _ in range(int(WIDTH*HEIGHT//1000)):
             self.generate_lake(random.randint(3, 8))
+    #     self.draw_river(0, 0)
+
+    # def draw_river(self, x, y):
+    #     cost = np.ones((WIDTH, HEIGHT), dtype=np.int8, order="F")
+    #     graph = tcod.path.SimpleGraph(cost=cost, cardinal=2, diagonal=3)
+    #     pf = tcod.path.Pathfinder(graph)
+    #     pf.add_root((0, 0))
+    #     path = pf.path_to((50, 50)).tolist()
+    #     for x, y in path:
+    #         self.world[x][y]['water'] = True
+
+
 
     def draw_world(self, console: tcod.console.Console, view_x: int, view_y: int):
         for x in range(VIEW_WIDTH):
@@ -34,33 +46,31 @@ class Game:
                 world_y = y + view_y
                 if 0 <= world_x < WIDTH and 0 <= world_y < HEIGHT:
                     height = self.world[world_x][world_y]['height']
-                    forest = self.world[world_x][world_y]['forest']
-                    water = self.world[world_x][world_y]['water']
-                    river = self.world[world_x][world_y]['river']
 
                     if height > 0.8: # mountain
                         console.print(x, y, "#")
                     elif height > 0.65: # hill
                         console.print(x, y, "/")
-                    elif river: # river
-                        console.print(x, y, "X", fg=(255, 0, 0))
-                    elif water: # water
+                    elif self.world[world_x][world_y]['water']: # water
                         console.print(x, y, "~", fg=(0, 0, 255))
-                    elif forest: # forest
+                    elif self.world[world_x][world_y]['forest']: # forest
                         console.print(x, y, "T", fg=(0, 200, 0))
                     else: # plains
                         console.print(x, y, ".", fg=(0, 255, 0))
 
     def gen_for(self, x, y):
-        for i in range(x-1, x+2):
-            for j in range(y-1, y+2):
+        for i in range(x-2, x+3):
+            for j in range(y-2, y+3):
                 if 0 <= i < WIDTH and 0 <= j < HEIGHT:
-                    if random.random() < 0.08:
+                    distance = max(abs(i - x), abs(j - y))
+                    forest_chance = 0.3 / (distance + 1)
+                    if random.random() < forest_chance:
                         self.world[i][j]['forest'] = True
+                    if distance <= 1 and random.random() < 0.05:
                         self.gen_for(i, j)
 
     def generate_forest(self, x, y):
-        if self.world[x][y]['height'] > 0.3 and self.world[x][y]['height'] < 0.65 and self.world[x][y]['temperature'] > 0.5:
+        if self.world[x][y]['height'] > 0.3 and self.world[x][y]['height'] < 0.65:
             if random.random() < 0.05:
                 self.gen_for(x, y)
                 return True
