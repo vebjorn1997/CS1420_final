@@ -30,7 +30,7 @@ def perlin_noise(width, height) -> np.ndarray:
                                     repeaty=height,
                                     base=seed)
             # Normalize the noise value to [0, 1]
-            noise_map[y][x] = noise_value + 0.5
+            noise_map[x][y] = noise_value + 0.5
 
     return noise_map
 

@@ -2,11 +2,11 @@ import tcod.console
 import tcod.context
 import tcod.event
 import tcod.tileset
-import perllin_gen as pn
+import perlin_gen as pn
 import player as pl
 import random
 import numpy as np
-# WIDTH, HEIGHT = 100, 100
+
 WIDTH, HEIGHT = 100, 100
 VIEW_WIDTH, VIEW_HEIGHT = 90, 50
 # VIEW_WIDTH, VIEW_HEIGHT = 50, 30
@@ -16,7 +16,7 @@ class Game:
         self.noise_map_height = pn.perlin_noise(WIDTH, HEIGHT)
         self.noise_map_temperature = pn.perlin_noise(WIDTH, HEIGHT)
         self.noise_map_precipitation = pn.perlin_noise(WIDTH, HEIGHT)
-        self.world = [[{'height': 0, 'temperature': 0, 'precipitation': 0, 'forest': False, 'water': False} for _ in range(WIDTH)] for _ in range(HEIGHT)]
+        self.world = [[{'characters': [], 'height': 0, 'temperature': 0, 'precipitation': 0, 'forest': False, 'water': False} for _ in range(WIDTH)] for _ in range(HEIGHT)]
         for x in range(HEIGHT):
             for y in range(WIDTH):
                 self.world[x][y]['height'] = self.noise_map_height[x][y]
@@ -47,7 +47,7 @@ class Game:
                 if 0 <= world_x < WIDTH and 0 <= world_y < HEIGHT:
                     height = self.world[world_x][world_y]['height']
 
-                    if height > 0.8: # mountain
+                    if height > 0.75: # mountain
                         console.print(x, y, "#")
                     elif height > 0.65: # hill
                         console.print(x, y, "/")
@@ -57,6 +57,12 @@ class Game:
                         console.print(x, y, "T", fg=(0, 200, 0))
                     else: # plains
                         console.print(x, y, ".", fg=(0, 255, 0))
+
+    def draw_character(self, console: tcod.console.Console, view_x: int, view_y: int, character: pl.Character):
+        console.print(character.x - view_x, character.y - view_y, character.marker, fg=character.color)
+        # remove all characters from the list if the name matches, and append the new one
+        self.world[character.x][character.y]['characters'] = [c for c in self.world[character.x][character.y]['characters'] if c != character.name]
+        self.world[character.x][character.y]['characters'].append(character.name)
 
     def gen_for(self, x, y):
         for i in range(x-2, x+3):
@@ -93,14 +99,11 @@ class Game:
                         self.world[i][j]['forest'] = False
                         self.generate_lake_tiles(i, j)
 
-    def get_world(self):
-        return print(self.world)
-
 
 def main() -> None:
-    """Script entry point."""
     game = Game()
-    player = pl.Player(WIDTH, HEIGHT)
+    player = pl.Player(WIDTH, HEIGHT, "P", (0, 0, 255), "Player")
+    enemy = pl.Enemy(WIDTH, HEIGHT, 40, 40, "E", (255, 0, 0), "Enemy")
     # Load the font, a 32 by 8 tile font with libtcod's old character layout.
     tileset = tcod.tileset.load_tilesheet(
         "data/dejavu16x16_gs_tc.png", 32, 8, tcod.tileset.CHARMAP_TCOD,
@@ -114,11 +117,16 @@ def main() -> None:
             if update_needed:
                 console.clear()
 
+                # Calculate view position
                 view_x = max(0, min(player.x - VIEW_WIDTH // 2, WIDTH - VIEW_WIDTH))
                 view_y = max(0, min(player.y - VIEW_HEIGHT // 2, HEIGHT - VIEW_HEIGHT))
 
                 game.draw_world(console, view_x, view_y)
-                player.draw_player(console, view_x, view_y)
+                # Draw characters - player and enemy
+                game.draw_character(console, view_x, view_y, player)
+                game.draw_character(console, view_x, view_y, enemy)
+                # Move enemy on update
+                enemy.move()
                 context.present(console)
                 update_needed = False
 
@@ -129,13 +137,13 @@ def main() -> None:
                 elif isinstance(event, tcod.event.KeyDown):
                     if event.sym in [tcod.event.KeySym.w, tcod.event.KeySym.s, tcod.event.KeySym.a, tcod.event.KeySym.d]:
                         if event.sym == tcod.event.KeySym.w:
-                            player.move_player(0, -1, game.world)
+                            player.move(0, -1, game.world)
                         elif event.sym == tcod.event.KeySym.s:
-                            player.move_player(0, 1, game.world)
+                            player.move(0, 1, game.world)
                         elif event.sym == tcod.event.KeySym.a:
-                            player.move_player(-1, 0, game.world)
+                            player.move(-1, 0, game.world)
                         elif event.sym == tcod.event.KeySym.d:
-                            player.move_player(1, 0, game.world)
+                            player.move(1, 0, game.world)
                         update_needed = True
                     elif event.sym == tcod.event.KeySym.e:
                         player.change_ground(game.world, player.x, player.y, True)
