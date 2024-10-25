@@ -13,14 +13,49 @@ VIEW_WIDTH, VIEW_HEIGHT = 90, 50
 
 class World_Generator:
     def __init__(self):
-        self.world = [[{'characters': [], 'height': 0, 'temperature': 0, 'precipitation': 0, 'forest': False, 'water': False} for _ in range(WIDTH)] for _ in range(HEIGHT)]
-
-class Game(World_Generator):
-    def __init__(self):
         self.noise_map_height = pn.perlin_noise(WIDTH, HEIGHT)
         self.noise_map_temperature = pn.perlin_noise(WIDTH, HEIGHT)
         self.noise_map_precipitation = pn.perlin_noise(WIDTH, HEIGHT)
         self.world = [[{'characters': [], 'height': 0, 'temperature': 0, 'precipitation': 0, 'forest': False, 'water': False} for _ in range(WIDTH)] for _ in range(HEIGHT)]
+
+    def gen_for(self, x, y):
+        for i in range(x-2, x+3):
+            for j in range(y-2, y+3):
+                if 0 <= i < WIDTH and 0 <= j < HEIGHT:
+                    distance = max(abs(i - x), abs(j - y))
+                    forest_chance = 0.3 / (distance + 1)
+                    if random.random() < forest_chance:
+                        self.world[i][j]['forest'] = True
+                    if distance <= 1 and random.random() < 0.05:
+                        self.gen_for(i, j)
+
+    def generate_forest(self, x, y):
+        if self.world[x][y]['height'] > 0.3 and self.world[x][y]['height'] < 0.65:
+            if random.random() < 0.05:
+                self.gen_for(x, y)
+                return True
+        return False
+
+    def generate_lake(self, radius: int):
+        lake_position = (random.randint(0, WIDTH - 1), random.randint(0, HEIGHT - 1))
+        for x in range(lake_position[0] - radius, lake_position[0] + radius):
+            for y in range(lake_position[1] - radius, lake_position[1] + radius):
+                if 0 <= x < WIDTH and 0 <= y < HEIGHT:
+                    self.generate_lake_tiles(x, y)
+
+    def generate_lake_tiles(self, x, y):
+        self.world[x][y]['water'] = True
+        for i in range(x-1, x+2):
+            for j in range(y-1, y+2):
+                if 0 <= i < WIDTH and 0 <= j < HEIGHT:
+                    if random.random() < 0.1:
+                        self.world[i][j]['water'] = True
+                        self.world[i][j]['forest'] = False
+                        self.generate_lake_tiles(i, j)
+
+class Game(World_Generator):
+    def __init__(self):
+        super().__init__()
         for x in range(HEIGHT):
             for y in range(WIDTH):
                 self.world[x][y]['height'] = self.noise_map_height[x][y]
@@ -78,40 +113,7 @@ class Game(World_Generator):
         if self.world[character.x][character.y]['characters'] != [character.name]:
             print(f"{character.name} has died")
 
-    def gen_for(self, x, y):
-        for i in range(x-2, x+3):
-            for j in range(y-2, y+3):
-                if 0 <= i < WIDTH and 0 <= j < HEIGHT:
-                    distance = max(abs(i - x), abs(j - y))
-                    forest_chance = 0.3 / (distance + 1)
-                    if random.random() < forest_chance:
-                        self.world[i][j]['forest'] = True
-                    if distance <= 1 and random.random() < 0.05:
-                        self.gen_for(i, j)
-
-    def generate_forest(self, x, y):
-        if self.world[x][y]['height'] > 0.3 and self.world[x][y]['height'] < 0.65:
-            if random.random() < 0.05:
-                self.gen_for(x, y)
-                return True
-        return False
-
-    def generate_lake(self, radius: int):
-        lake_position = (random.randint(0, WIDTH - 1), random.randint(0, HEIGHT - 1))
-        for x in range(lake_position[0] - radius, lake_position[0] + radius):
-            for y in range(lake_position[1] - radius, lake_position[1] + radius):
-                if 0 <= x < WIDTH and 0 <= y < HEIGHT:
-                    self.generate_lake_tiles(x, y)
-
-    def generate_lake_tiles(self, x, y):
-        self.world[x][y]['water'] = True
-        for i in range(x-1, x+2):
-            for j in range(y-1, y+2):
-                if 0 <= i < WIDTH and 0 <= j < HEIGHT:
-                    if random.random() < 0.1:
-                        self.world[i][j]['water'] = True
-                        self.world[i][j]['forest'] = False
-                        self.generate_lake_tiles(i, j)
+    
 
 
 def main() -> None:
