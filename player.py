@@ -11,6 +11,7 @@ class Character(ABC):
         self.color = color
         self.name = name
 
+    @abstractmethod
     def move(self, dx: int, dy: int, world):
         pass
 
@@ -37,7 +38,7 @@ class Player(Character):
         self.x = width // 2
         self.y = height // 2
 
-    def move(self, dx: int, dy: int, world): # We might be able to use polymorphism here for enemy and player movement
+    def move(self, dx: int, dy: int, world):
         new_x = self.x + dx
         new_y = self.y + dy
         if 0 <= new_x < self.width and 0 <= new_y < self.height:

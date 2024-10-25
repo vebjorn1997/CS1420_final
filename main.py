@@ -11,7 +11,11 @@ WIDTH, HEIGHT = 100, 100
 VIEW_WIDTH, VIEW_HEIGHT = 90, 50
 # VIEW_WIDTH, VIEW_HEIGHT = 50, 30
 
-class Game:
+class World_Generator:
+    def __init__(self):
+        self.world = [[{'characters': [], 'height': 0, 'temperature': 0, 'precipitation': 0, 'forest': False, 'water': False} for _ in range(WIDTH)] for _ in range(HEIGHT)]
+
+class Game(World_Generator):
     def __init__(self):
         self.noise_map_height = pn.perlin_noise(WIDTH, HEIGHT)
         self.noise_map_temperature = pn.perlin_noise(WIDTH, HEIGHT)
@@ -40,6 +44,9 @@ class Game:
 
 
     def draw_world(self, console: tcod.console.Console, view_x: int, view_y: int):
+        """
+        Draw the visible part of the world to the console
+        """
         for x in range(VIEW_WIDTH):
             for y in range(VIEW_HEIGHT):
                 world_x = x + view_x
@@ -59,10 +66,17 @@ class Game:
                         console.print(x, y, ".", fg=(0, 255, 0))
 
     def draw_character(self, console: tcod.console.Console, view_x: int, view_y: int, character: pl.Character):
+        """
+        Draw the character on the console, and update the list of characters in the tile
+        """
         console.print(character.x - view_x, character.y - view_y, character.marker, fg=character.color)
         # remove all characters from the list if the name matches, and append the new one
         self.world[character.x][character.y]['characters'] = [c for c in self.world[character.x][character.y]['characters'] if c != character.name]
         self.world[character.x][character.y]['characters'].append(character.name)
+
+    def check_game_over(self, character: pl.Character):
+        if self.world[character.x][character.y]['characters'] != [character.name]:
+            print(f"{character.name} has died")
 
     def gen_for(self, x, y):
         for i in range(x-2, x+3):
@@ -127,6 +141,8 @@ def main() -> None:
                 game.draw_character(console, view_x, view_y, enemy)
                 # Move enemy on update
                 enemy.move()
+                # Check if player is dead
+                game.check_game_over(player)
                 context.present(console)
                 update_needed = False
 
