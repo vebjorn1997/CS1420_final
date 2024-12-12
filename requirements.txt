@@ -1,0 +1,4 @@
+tcod==16.2.3
+noise==1.2.2
+matplotlib==3.9.3
+numpy==2.2.0
