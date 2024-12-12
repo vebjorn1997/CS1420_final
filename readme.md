@@ -23,6 +23,14 @@
 
 - The object of the game is to stay alive for as long as possible. Time is counted in rounds, where one round is the equvivalent of a move action or a pass action.
 - Every 10 rounds, a new enemy spawn.
+- The map has several features:
+  - Water - Enemy Impassable, blue squigly line
+  - Forest - Passable, green T
+  - Hills - Passable, White Dash
+  - Mountains - Impassable, White Hash
+  - Grass - passable, green .
+  - Player - Yellow P
+  - Enemy - Red E
 
 ## Known Bugs
 

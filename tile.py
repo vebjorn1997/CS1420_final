@@ -1,4 +1,7 @@
 class Tile:
+    """
+    Holds the properties of a tile. Used to generate the map and for pathfinding.
+    """
     def __init__(
         self,
         height: int,
