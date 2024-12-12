@@ -1,7 +1,7 @@
+import random
 import numpy as np
 import noise
 import matplotlib.pyplot as plt
-import random
 
 
 def visualize_noise_map(noise_map):

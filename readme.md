@@ -1,4 +1,4 @@
-### Install
+## Install
 
 - Create a virtual enviorment: 'python -m venv /path/to/new/virtual/environment'
 - Activate the virtual enviorment: 'Scripts/activate'
@@ -14,8 +14,8 @@
 
 ## Controls
 
-- WASD - move
-- SPACE - let time pass
+- wasd - move
+- space - let time pass
 - q - debug tool, reads the tile the player is on
 - e - generates a forest
 
@@ -31,6 +31,8 @@
 
 ## FAQ
 
-- The noise module requires visual studio install which is 7gb. To avoid this install req you can bypass it. First go into the requirements.txt file and remove the noise module. Then run pip install -r requirements.txt.
-  Next, got into main.py and comment out line 7, 23, 24, 25, 93, 94, and 95. Then go to tile.py, and change line 10, 11, and 12 to 0.
-  This will remove the terrain generation, excpets for water, but the game will still work.
+- The noise module requires visual studio install which is 7gb. To avoid this install req you can bypass it. However, this will remove the terrain generation, excpets for water, but the game will still work.
+  - First go into the requirements.txt file and remove the noise module.
+  - Then run pip install -r requirements.txt.
+  - Next, got into main.py and comment out line 7, 23, 24, 25, 93, 94, and 95.
+  - Then go to tile.py, and change line 10, 11, and 12 to 0.
