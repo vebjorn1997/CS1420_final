@@ -15,10 +15,6 @@ class Character(ABC):
         self.color = color
         self.name = name
 
-    @abstractmethod
-    def move(self, dx: int, dy: int, world):
-        pass
-
 
 class Enemy(Character):
     """
@@ -42,6 +38,9 @@ class Enemy(Character):
         self.graph = graph
 
     def move(self, target: "Player"):
+        """
+        Move the enemy towards the target
+        """
         pf = tcod.path.Pathfinder(self.graph)
         pf.add_root((self.x, self.y))
         moves = pf.path_to(target.get_location)
@@ -64,20 +63,32 @@ class Player(Character):
 
     @property
     def get_location(self):
+        """
+        Get the player's location
+        """
         return (self.x, self.y)
 
     def move(self, dx: int, dy: int, world):
+        """
+        Move the player in the given direction, if the new position is within bounds and height is less than 0.75, move the player
+        """
         new_x = self.x + dx
         new_y = self.y + dy
         if 0 <= new_x < self.width and 0 <= new_y < self.height:
-            if world[new_x][new_y].height <= 0.75:  # stop at height 0.8
+            if world[new_x][new_y].height <= 0.75:
                 self.x = new_x
                 self.y = new_y
 
     def change_ground(self, game, x: int, y: int, value: bool):
+        """
+        Change the ground type at the given position
+        """
         game.world[x][y].forest = value
         game.update_pathfinding_costs()
 
-    def read_world(self, game, x, y):
+    def read_world(self, game, x: int, y: int):
+        """
+        Read the world info at the given position
+        """
         print(f"X: {x}, Y: {y}")
         return game.world[x][y]
