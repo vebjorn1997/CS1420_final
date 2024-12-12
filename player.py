@@ -1,5 +1,5 @@
-import tcod.console
 from abc import ABC, abstractmethod
+import tcod.console
 
 
 class Character(ABC):

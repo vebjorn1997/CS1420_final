@@ -16,6 +16,9 @@ class Tile:
         self.cost: int = 1
 
     def calculate_cost(self):
+        """
+        Calculate the cost of the tile, cost is used for pathfinding
+        """
         if self.water:
             self.cost = 0
         elif self.forest:
